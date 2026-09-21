@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tokyo Trip Kit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  [hidden] { display: none !important; }
+
+  :root {
+    --ink: #1A2233;
+    --paper: #EFF2F5;
+    --raised: #FFFFFF;
+    --line: #CBD1DC;
+    --muted: #5B6479;
+    --accent: #C9502A;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #F4DCCF;
+    --good: #3E7A5B;
+    --good-soft: #DCEAE1;
+    --flag: #96690F;
+    --flag-soft: #F2E4C6;
+    --shadow: 0 1px 0 rgba(26,34,51,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #E8ECF2;
+      --paper: #10141B;
+      --raised: #1A212B;
+      --line: #2E3646;
+      --muted: #9AA3B7;
+      --accent: #E8703F;
+      --accent-ink: #1A0F09;
+      --accent-soft: #3A2620;
+      --good: #6FB894;
+      --good-soft: #1C2B24;
+      --flag: #D9A441;
+      --flag-soft: #33290F;
+      --shadow: 0 1px 0 rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #E8ECF2;
+    --paper: #10141B;
+    --raised: #1A212B;
+    --line: #2E3646;
+    --muted: #9AA3B7;
+    --accent: #E8703F;
+    --accent-ink: #1A0F09;
+    --accent-soft: #3A2620;
+    --good: #6FB894;
+    --good-soft: #1C2B24;
+    --flag: #D9A441;
+    --flag-soft: #33290F;
+    --shadow: 0 1px 0 rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    padding-inline: 16px;
+    max-width: 600px;
+    margin-inline: auto;
+  }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; margin: 0; }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; }
+
+  .topbar {
+    padding-block: 18px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    margin: 0 0 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .topbar h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .status { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+  .status strong { color: var(--ink); font-weight: 600; }
+
+  .content { padding-block: 16px 96px; }
+  section[hidden] { display: none !important; }
+
+  /* ---- checklist tabs ---- */
+  .progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .progress-fill { height: 100%; background: var(--good); transition: width .25s ease; }
+
+  .list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 18px; }
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px dashed var(--line);
+    background: transparent;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .check {
+    flex: none;
+    width: 22px; height: 22px;
+    margin-top: 1px;
+    border-radius: 50%;
+    border: 1.5px solid var(--muted);
+    background: var(--raised);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .check.checked { background: var(--good); border-color: var(--good); }
+  .check svg { width: 12px; height: 12px; opacity: 0; }
+  .check.checked svg { opacity: 1; }
+  .check svg path { stroke: white; }
+
+  .item-text {
+    flex: 1;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .item-row.checked .item-text { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+
+  .item-del {
+    flex: none;
+    width: 22px; height: 22px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    opacity: 0.5;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .item-del:hover { opacity: 1; }
+
+  .add-row {
+    display: flex;
+    gap: 8px;
+    padding-top: 8px;
+  }
+  .add-row input {
+    flex: 1;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .add-row input::placeholder { color: var(--muted); }
+  .add-row button {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* ---- itinerary ---- */
+  .day {
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .day-stub {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 14px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .day-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--accent);
+    width: 30px;
+    flex: none;
+  }
+  .day-meta { flex: none; width: 62px; }
+  .day-dow { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .day-date { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink); font-weight: 500; }
+  .day-title { flex: 1; font-size: 15.5px; font-weight: 600; line-height: 1.3; }
+  .day-chevron {
+    flex: none;
+    width: 18px; height: 18px;
+    transition: transform .2s ease;
+    color: var(--muted);
+  }
+  .day-stub[aria-expanded="true"] .day-chevron { transform: rotate(180deg); }
+
+  .day-body { padding: 0 16px 18px; }
+  .day-area {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--muted);
+    border-top: 1px dashed var(--line);
+    padding-top: 14px;
+  }
+
+  .timeline { list-style: none; margin: 0 0 16px; padding: 0; }
+  .timeline li {
+    display: flex;
+    gap: 12px;
+    padding: 7px 0;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .timeline .t {
+    flex: none;
+    width: 52px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--accent);
+    padding-top: 1px;
+  }
+
+  .callout {
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .callout h3 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .callout ul { margin: 0; padding-left: 16px; }
+  .callout li { margin-bottom: 4px; }
+  .callout li:last-child { margin-bottom: 0; }
+  .callout.alt { background: var(--good-soft); color: var(--ink); }
+  .callout.alt h3 { color: var(--good); }
+  .callout.watch { background: var(--flag-soft); color: var(--ink); }
+  .callout.watch h3 { color: var(--flag); }
+
+  .section-title { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+
+  /* ---- tab bar ---- */
+  .tabbar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid var(--line);
+    background: var(--raised);
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    z-index: 10;
+  }
+  .tabbar-inner {
+    display: flex;
+    width: 100%;
+    max-width: 600px;
+    padding-inline: 16px;
+  }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .tab-btn svg { width: 20px; height: 20px; }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn svg path, .tab-btn svg circle, .tab-btn svg rect { stroke: currentColor; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <p class="eyebrow" id="eyebrow">21–28 OCT 2026 · TOKYO</p>
+  <h1>Tokyo Trip Kit</h1>
+  <p class="status" id="statusLine">Loading your lists…</p>
+</div>
+
+<main class="content">
+  <section id="tab-bookings">
+    <p class="section-title">Tap to check off as you lock each one in. Add anything I missed.</p>
+    <div class="progress-track"><div class="progress-fill" id="fill-bookings" style="width:0%"></div></div>
+    <div class="list" id="list-bookings"></div>
+    <div class="add-row">
+      <input type="text" id="add-bookings" placeholder="Add a booking…" />
+      <button data-add="bookings">Add</button>
+    </div>
+  </section>
+
+  <section id="tab-packing" hidden>
+    <p class="section-title">Pack list for a late-October Tokyo trip — Disney days, a mountain day, and a lot of walking.</p>
+    <div class="progress-track"><div class="progress-fill" id="fill-packing" style="width:0%"></div></div>
+    <div class="list" id="list-packing"></div>
+    <div class="add-row">
+      <input type="text" id="add-packing" placeholder="Add an item…" />
+      <button data-add="packing">Add</button>
+    </div>
+  </section>
+
+  <section id="tab-itinerary" hidden>
+    <p class="section-title">Tap a day to open the plan, the backup plan, and what to watch for.</p>
+    <div id="days"></div>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab-btn active" data-tab="bookings">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z"/><path d="M10 6v12" stroke-dasharray="2 2"/></svg>
+      Bookings
+    </button>
+    <button class="tab-btn" data-tab="packing">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="2"/><path d="M9 12h6"/></svg>
+      Packing
+    </button>
+    <button class="tab-btn" data-tab="itinerary">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 9 4l6 2.5L20 4v13.5L15 20l-6-2.5L4 20V6.5Z"/><path d="M9 4v13.5M15 6.5V20"/></svg>
+      Itinerary
+    </button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+
+  var CHECK_SVG = '<svg viewBox="0 0 12 12"><path d="M2 6.2 4.8 9 10 3" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var CHEVRON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+
+  var DEFAULTS = {
+    bookings: [
+      "Tokyo Disneyland ticket — Thu 22 Oct",
+      "Tokyo DisneySea ticket — Fri 23 Oct",
+      "Disney Premier Access budget/plan for Fantasy Springs",
+      "Hotel — 1955 Tokyo Bay by Hoshino Resorts, 21–24 Oct",
+      "Hotel — Shinjuku (Hotel Groove or JR Kyushu Blossom), 24–28 Oct",
+      "Narita Airport Limousine Bus — 21 Oct arrival",
+      "Narita Express (N'EX) seats — 28 Oct departure",
+      "Kawaguchiko highway bus — reserved seats, 26 Oct",
+      "My CUPNOODLES Factory slot — Cup Noodles Museum, 25 Oct",
+      "eSIM / pocket wifi",
+      "Suica or Pasmo set up on phone",
+      "Travel insurance",
+      "Passport valid 6+ months from 28 Oct 2026",
+      "Yen cash for small shops and markets"
+    ],
+    packing: [
+      "Broken-in walking shoes",
+      "Layers for 15–22°C days, cool mornings/evenings",
+      "Light rain jacket + compact umbrella",
+      "Warmer layer for Kawaguchiko (cooler near Fuji)",
+      "Small day backpack for Disney days",
+      "Portable phone charger / battery pack",
+      "Reusable water bottle",
+      "Japan power adapter (Type A, 100V)",
+      "Passport + printed insurance details",
+      "Cash wallet — many small shops are cash-only",
+      "Foldable tote for Kuramae shopping",
+      "Any regular medications / basic first aid",
+      "IC card and offline maps downloaded before landing"
+    ]
+  };
+
+  var DAYS = [
+    {
+      num: "01", dow: "WED", date: "21 OCT", title: "Narita → Disney Area",
+      area: "Maihama / Urayasu · 1955 Tokyo Bay by Hoshino Resorts",
+      timeline: [
+        ["09:00", "Land at Narita — allow 60–90 min for immigration and bags"],
+        ["10:30", "Airport Limousine Bus to Maihama/Urayasu (book ahead; train also works)"],
+        ["12:30", "Arrive hotel area, drop bags — room may not be ready yet"],
+        ["Aft.", "Ikspiari — lunch, browse, coffee, pick up Disney goods"],
+        ["Eve.", "Dinner near Maihama, early night"]
+      ],
+      alt: [
+        "Bus sold out or timing off: Keisei/JR + monorail combo works fine with luggage, just budget one extra transfer.",
+        "Landing delayed past ~11am: skip Ikspiari browsing, go straight to a relaxed dinner and protect sleep before two full Disney days."
+      ],
+      watch: [
+        "Book the Limousine Bus seat ahead — luggage-heavy afternoon buses can sell out.",
+        "Hotel check-in is likely mid-afternoon — confirm bag storage at the front desk."
+      ]
+    },
+    {
+      num: "02", dow: "THU", date: "22 OCT", title: "Tokyo Disneyland",
+      area: "Maihama — full day, park open to close",
+      timeline: [
+        ["07:00", "Wake up"],
+        ["07:30", "Breakfast"],
+        ["08:00", "Head to the park"],
+        ["09:00–21:00", "Cinderella Castle, Fantasyland, Tomorrowland, Adventureland, evening entertainment, snacks, shopping"]
+      ],
+      alt: [
+        "Rain: Disneyland has heavy covered queueing and shows — a wet day here is manageable, keep ponchos handy.",
+        "Still tired from the flight: push entry to 10am and drop only the least-essential land first."
+      ],
+      watch: [
+        "Buy dated park tickets in advance — popular dates can sell out.",
+        "Use the Disney app to grab priority/standby-pass timings for headline rides right at park open."
+      ]
+    },
+    {
+      num: "03", dow: "FRI", date: "23 OCT", title: "Tokyo DisneySea",
+      area: "Maihama — full day, park open to close",
+      timeline: [
+        ["09:00–21:00", "Mediterranean Harbor, Mysterious Island, Mermaid Lagoon, Arabian Coast, American Waterfront, Fantasy Springs"]
+      ],
+      alt: [
+        "Fantasy Springs passes gone: spend the extra time in American Waterfront and Mysterious Island instead — both reward a slow pace.",
+        "Rain: Mysterious Island and the areas around Aquatopia have good cover — save outdoor Harbor shows for a clearer stretch."
+      ],
+      watch: [
+        "Fantasy Springs needs a paid Disney Premier Access pass or a free timed-entry ticket claimed in the app — usually gone within minutes of opening. Have the app open before 9am.",
+        "This is your only DisneySea day — don't leave Fantasy Springs access to chance."
+      ]
+    },
+    {
+      num: "04", dow: "SAT", date: "24 OCT", title: "Kichijoji + Shimokitazawa",
+      area: "Hotel transfer day — Disney → Shinjuku",
+      timeline: [
+        ["08:00", "Breakfast"],
+        ["09:00", "Check out, arrange luggage forwarding (takkyubin) to the Shinjuku hotel"],
+        ["10:00", "Travel to Shinjuku, drop your day bag"],
+        ["11:00–14:00", "Kichijoji — Inokashira Park, streets, Sun Road, lunch"],
+        ["14:30–19:00", "Shimokitazawa — vintage, secondhand, lifestyle shops, cafés, record stores, dinner"],
+        ["20:00", "Back to Shinjuku, check in"]
+      ],
+      alt: [
+        "Running on Disney fatigue: trim Shimokitazawa to ~2 hours instead of 4.5 — easy to under-visit rather than rush.",
+        "Rain: both neighborhoods have enough covered arcades and cafés to comfortably wait out a shower."
+      ],
+      watch: [
+        "Takkyubin has a same-day cutoff, often ~11am — confirm it at the hotel desk the evening before, not the morning of.",
+        "Kichijoji and Shimokitazawa are one direct stop apart on the Keio Inokashira Line — no need to route back through Shinjuku between them."
+      ]
+    },
+    {
+      num: "05", dow: "SUN", date: "25 OCT", title: "Yokohama + Cup Noodles",
+      area: "Day trip from Shinjuku",
+      timeline: [
+        ["08:30", "Leave Shinjuku"],
+        ["09:30", "Arrive Sakuragicho"],
+        ["10:00", "Yokohama Air Cabin"],
+        ["10:30–12:00", "Cup Noodles Museum"],
+        ["12:00–13:00", "Red Brick Warehouse"],
+        ["13:00–14:30", "Chinatown food crawl"],
+        ["14:30–15:30", "Yamashita Park"],
+        ["15:30–16:45", "Motomachi"],
+        ["17:30–18:30", "Sunset / Minato Mirai views"],
+        ["18:30–19:30", "Dinner"],
+        ["20:00", "Back to Shinjuku"]
+      ],
+      alt: [
+        "Rain: swap outdoor time (Yamashita Park, Air Cabin) for more time in Red Brick Warehouse, Chinatown and the museum — all indoors.",
+        "Short on time: Motomachi is the easiest segment to cut without losing the day's highlights."
+      ],
+      watch: [
+        "Book the My CUPNOODLES Factory slot ahead — timed entry, sells out.",
+        "Yokohama Air Cabin can queue or pause in bad weather — don't bank on it sight unseen."
+      ]
+    },
+    {
+      num: "06", dow: "MON", date: "26 OCT", title: "Mt Fuji / Kawaguchiko",
+      area: "Weather-dependent day trip",
+      timeline: [
+        ["07:00", "Leave Shinjuku by bus"],
+        ["09:30", "Arrive Kawaguchiko"],
+        ["Morning", "Viewpoints, Oishi Park, Panoramic Ropeway if conditions are good"],
+        ["Lunch", "Hoto noodles"],
+        ["Aft.", "Lake Kawaguchiko cafés and shops"],
+        ["16:00", "Head back to Tokyo"],
+        ["19:00", "Back in Shinjuku"]
+      ],
+      alt: [
+        "Bad forecast: swap this day with Day 7 (Yanaka + Kuramae), which is far less weather-sensitive, and push Fuji to the 27th.",
+        "Overcast but dry: skip the Ropeway since views won't clear, spend more time at lakeside cafés and Oishi Park instead."
+      ],
+      watch: [
+        "Book the highway bus ahead — reserved seats can sell out.",
+        "This itinerary only has one scheduled Fuji day — make the swap-or-risk-it call the night before, based on the forecast."
+      ]
+    },
+    {
+      num: "07", dow: "TUE", date: "27 OCT", title: "Yanaka + Kuramae",
+      area: "Slowest sightseeing day of the trip",
+      timeline: [
+        ["09:30", "Shinjuku → Yanaka"],
+        ["10:00–13:00", "Yanaka Ginza, cemetery, temples, backstreets, cafés"],
+        ["13:00", "Lunch around Yanaka"],
+        ["13:00", "Head to Kuramae"],
+        ["14:00–17:30", "Kuramae — ceramics, homeware, stationery, craft goods, independent cafés"],
+        ["Eve.", "Back to Shinjuku, final dinner"]
+      ],
+      alt: [
+        "If Fuji got swapped to today: condense to Kuramae only — it holds up fine as a half-day on its own.",
+        "Buying ceramics: ask about shipping before carrying anything fragile onward — several Kuramae shops ship internationally."
+      ],
+      watch: [
+        "Lean into Kuramae over Yanaka given the interest in ceramics/homeware — don't shortchange it for temple time.",
+        "Bring a tote or soft bag for anything bulky picked up here."
+      ]
+    },
+    {
+      num: "08", dow: "WED", date: "28 OCT", title: "Shinjuku → Narita",
+      area: "Departure day — flight at 16:00",
+      timeline: [
+        ["08:00", "Wake up"],
+        ["09:00", "Breakfast"],
+        ["09:30–10:30", "Last-minute shopping / Shinjuku wander"],
+        ["10:30", "Back to hotel, collect luggage"],
+        ["11:00", "Leave Shinjuku"],
+        ["13:00", "Aim to arrive Narita — a 3 hr buffer before the flight"]
+      ],
+      alt: [
+        "Not fully packed the night before: move wander time earlier and treat 09:30–10:30 as packing buffer instead."
+      ],
+      watch: [
+        "Book Narita Express (N'EX) seats ahead — the easiest luggage-friendly route from Shinjuku.",
+        "Reconfirm the flight's check-in/bag-drop cutoff before locking in the 13:00 Narita arrival target."
+      ]
+    }
+  ];
+
+  function genId(){ return 'i-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  function defaultItems(name){
+    return DEFAULTS[name].map(function(text){ return { id: genId(), text: text, checked: false }; });
+  }
+
+  // ---- storage: db capability with localStorage fallback ----
+  var state = { bookings: null, packing: null };
+  var saveIssueShown = false;
+
+  function markSaveIssue(){
+    if (saveIssueShown) return;
+    saveIssueShown = true;
+    var el = document.getElementById('statusLine');
+    if (el) el.textContent = "Changes aren't saving on this device — they'll still work locally.";
+  }
+
+  function makeLocalStore(){
+    return {
+      subscribe: function(name, cb){
+        var data = null;
+        try {
+          var raw = localStorage.getItem('tokyo-trip-kit:' + name);
+          data = raw ? JSON.parse(raw) : null;
+        } catch (e) {}
+        Promise.resolve().then(function(){ cb(data); });
+        return function(){};
+      },
+      save: function(name, data){
+        try { localStorage.setItem('tokyo-trip-kit:' + name, JSON.stringify(data)); }
+        catch (e) { markSaveIssue(); }
+        return Promise.resolve();
+      }
+    };
+  }
+
+  function makeDbStore(db){
+    return {
+      subscribe: function(name, cb){
+        var ref = db.doc('lists/' + name);
+        return ref.onSnapshot(
+          function(snap){ cb(snap.exists ? snap.data() : null); },
+          function(err){ console.warn('db error', name, err); markSaveIssue(); }
+        );
+      },
+      save: function(name, data){
+        var ref = db.doc('lists/' + name);
+        return ref.set(data).catch(function(err){ console.warn('save failed', name, err); markSaveIssue(); });
+      }
+    };
+  }
+
+  var store = null;
+
+  function onListChange(name, data){
+    state[name] = (data && Array.isArray(data.items)) ? data : { items: defaultItems(name) };
+    render();
+  }
+
+  function initStore(){
+    var claude = window.claude;
+    var useFn = claude && claude.use;
+    var dbPromise = useFn ? Promise.resolve(useFn.call(claude, 'db')).catch(function(){ return null; }) : Promise.resolve(null);
+    dbPromise.then(function(db){
+      store = db ? makeDbStore(db) : makeLocalStore();
+      store.subscribe('bookings', function(d){ onListChange('bookings', d); });
+      store.subscribe('packing', function(d){ onListChange('packing', d); });
+    });
+  }
+
+  function toggle(name, id){
+    var items = state[name].items.map(function(it){
+      return it.id === id ? Object.assign({}, it, { checked: !it.checked }) : it;
+    });
+    state[name] = { items: items };
+    render();
+    if (store) store.save(name, { items: items });
+  }
+
+  function removeItem(name, id){
+    var items = state[name].items.filter(function(it){ return it.id !== id; });
+    state[name] = { items: items };
+    render();
+    if (store) store.save(name, { items: items });
+  }
+
+  function addItem(name, text){
+    text = text.trim();
+    if (!text) return;
+    var items = state[name].items.concat([{ id: genId(), text: text, checked: false }]);
+    state[name] = { items: items };
+    render();
+    if (store) store.save(name, { items: items });
+  }
+
+  // ---- rendering ----
+  function renderList(name){
+    var container = document.getElementById('list-' + name);
+    var fill = document.getElementById('fill-' + name);
+    if (!container || !state[name]) return;
+    var items = state[name].items;
+    container.innerHTML = items.map(function(it){
+      return '' +
+        '<div class="item-row' + (it.checked ? ' checked' : '') + '">' +
+          '<button class="check' + (it.checked ? ' checked' : '') + '" data-toggle="' + it.id + '" aria-label="Toggle done">' + CHECK_SVG + '</button>' +
+          '<button class="item-text" data-toggle="' + it.id + '">' + escapeHtml(it.text) + '</button>' +
+          '<button class="item-del" data-del="' + it.id + '" aria-label="Remove">×</button>' +
+        '</div>';
+    }).join('');
+
+    var done = items.filter(function(it){ return it.checked; }).length;
+    var pct = items.length ? Math.round(100 * done / items.length) : 0;
+    if (fill) fill.style.width = pct + '%';
+
+    container.querySelectorAll('[data-toggle]').forEach(function(el){
+      el.addEventListener('click', function(){ toggle(name, el.getAttribute('data-toggle')); });
+    });
+    container.querySelectorAll('[data-del]').forEach(function(el){
+      el.addEventListener('click', function(){ removeItem(name, el.getAttribute('data-del')); });
+    });
+
+    return { done: done, total: items.length };
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  function updateStatus(){
+    if (saveIssueShown) return;
+    var el = document.getElementById('statusLine');
+    if (!el || !state.bookings || !state.packing) return;
+    var active = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+    if (active === 'bookings') {
+      var b = state.bookings.items;
+      var bd = b.filter(function(i){return i.checked;}).length;
+      el.innerHTML = '<strong>' + bd + ' / ' + b.length + '</strong> booked';
+    } else if (active === 'packing') {
+      var p = state.packing.items;
+      var pd = p.filter(function(i){return i.checked;}).length;
+      el.innerHTML = '<strong>' + pd + ' / ' + p.length + '</strong> packed';
+    } else {
+      var days = Math.ceil((new Date('2026-10-21T00:00:00') - new Date()) / 86400000);
+      el.textContent = days > 0 ? days + ' days to go' : 'Have a great trip';
+    }
+  }
+
+  function render(){
+    renderList('bookings');
+    renderList('packing');
+    updateStatus();
+  }
+
+  // ---- itinerary (static) ----
+  function renderDays(){
+    var wrap = document.getElementById('days');
+    wrap.innerHTML = DAYS.map(function(d, idx){
+      return '' +
+        '<article class="day">' +
+          '<button class="day-stub" aria-expanded="false" data-day="' + idx + '">' +
+            '<span class="day-num mono">' + d.num + '</span>' +
+            '<span class="day-meta"><span class="day-dow">' + d.dow + '</span><span class="day-date">' + d.date + '</span></span>' +
+            '<span class="day-title">' + d.title + '</span>' +
+            '<span class="day-chevron">' + CHEVRON_SVG + '</span>' +
+          '</button>' +
+          '<div class="day-body" hidden>' +
+            '<p class="day-area">' + d.area + '</p>' +
+            '<ol class="timeline">' + d.timeline.map(function(t){
+              return '<li><span class="t">' + t[0] + '</span><span>' + t[1] + '</span></li>';
+            }).join('') + '</ol>' +
+            '<div class="callout alt"><h3>If plans change</h3><ul>' + d.alt.map(function(a){ return '<li>' + a + '</li>'; }).join('') + '</ul></div>' +
+            '<div class="callout watch"><h3>Watch out for</h3><ul>' + d.watch.map(function(w){ return '<li>' + w + '</li>'; }).join('') + '</ul></div>' +
+          '</div>' +
+        '</article>';
+    }).join('');
+
+    wrap.querySelectorAll('.day-stub').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var body = btn.parentElement.querySelector('.day-body');
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        body.hidden = open;
+      });
+    });
+  }
+
+  // ---- tabs ----
+  function switchTab(name){
+    document.querySelectorAll('.tab-btn').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-tab') === name);
+    });
+    ['bookings','packing','itinerary'].forEach(function(n){
+      document.getElementById('tab-' + n).hidden = (n !== name);
+    });
+    updateStatus();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function(b){
+    b.addEventListener('click', function(){ switchTab(b.getAttribute('data-tab')); });
+  });
+
+  document.querySelectorAll('[data-add]').forEach(function(btn){
+    var name = btn.getAttribute('data-add');
+    var input = document.getElementById('add-' + name);
+    function submit(){ addItem(name, input.value); input.value = ''; }
+    btn.addEventListener('click', submit);
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
+  });
+
+  renderDays();
+  initStore();
+  updateStatus();
+})();
+</script>
+</body>
+</html>
